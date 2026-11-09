@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StagePulse Events – Ton- und Lichttechnik, Bierzelte, DJ & mehr</title>
+<meta name="description" content="StagePulse Events: Verleih von Ton- und Lichttechnik (ohne Bühne), Bierzelten, Bierzeltgarnituren und Stehtischen, dazu Catering-Personal, Plakatierservice und DJ.">
+<meta property="og:title" content="StagePulse Events – Dein Event. Unser Puls.">
+<meta property="og:image" content="img/logo.jpg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="bar"><a href="#top"><img src="img/logo.jpg" alt="StagePulse Events Logo" width="120" height="63"></a>
+<nav><a href="#leistungen">Leistungen</a><a href="#anlaesse">Anlässe</a><a href="#ueber-uns">Über uns</a><a href="#kontakt">Kontakt</a></nav></header>
+<main id="top">
+<section class="hero">
+<div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<img src="img/logo.jpg" alt="StagePulse Events – Dein Event. Unser Puls." class="logo" width="640" height="340">
+<h1>Dein Event. Unser Puls.</h1>
+<p>Technik, Zelte und Service für Feste von 20 bis 600 Gästen.</p>
+<button class="btn" data-ask>Jetzt anfragen</button>
+</section>
+
+<section id="leistungen"><h2>Leistungen</h2>
+<ul class="svc">
+<li><div><h3>Ton- und Lichttechnik</h3><p>Verleih für Dorffest, Stadtfest, Firmenfeier, Lichterfest, Geburtstag, Hochzeit und private Clubpartys bis 600 Personen. <strong>Nur Technik, wir vermieten keine Bühne.</strong></p></div><button class="btn" data-ask="Ton- und Lichttechnik (ohne Bühne)">Anfragen</button></li>
+<li><div><h3>Bierzelt</h3><p>Aufbaufertige Zelte für Feste jeder Größe.</p></div><button class="btn" data-ask="Bierzelt">Anfragen</button></li>
+<li><div><h3>Bierzeltgarnituren und Stehtische</h3><p>Tische und Bänke zum Sitzen, Stehtische für den Empfang.</p></div><button class="btn" data-ask="Bierzeltgarnituren">Anfragen</button></li>
+<li><div><h3>Catering-Personalservice</h3><p>Servicekräfte für Ausschank, Buffet und Abbau.</p></div><button class="btn" data-ask="Catering-Personalservice">Anfragen</button></li>
+<li><div><h3>Plakatierservice</h3><p>Eure Plakate zuverlässig vor Ort aufgehängt.</p></div><button class="btn" data-ask="Plakatierservice">Anfragen</button></li>
+<li><div><h3>DJ-Allround-Service</h3><p>Musik für jedes Publikum, vom Polterabend bis zum Stadtfest.</p></div><button class="btn" data-ask="DJ-Allround-Service">Anfragen</button></li>
+</ul></section>
+
+<section id="anlaesse"><h2>Anlässe</h2>
+<ul class="chips"><li>Dorffest</li><li>Stadtfest</li><li>Firmenfeier</li><li>Lichterfest</li><li>Geburtstag</li><li>Hochzeit</li><li>Clubparty</li></ul></section>
+
+<section id="ueber-uns"><h2>Warum StagePulse</h2>
+<div class="grid">
+<div><h3>Zuverlässig</h3><p>Absprachen gelten, Termine sitzen, das Material ist gepflegt.</p></div>
+<div><h3>Persönliche Beratung</h3><p>Wir besprechen Gästezahl, Ort und Ablauf direkt mit euch.</p></div>
+<div><h3>Faire Preise</h3><p>Ein Angebot, das ihr Position für Position nachvollziehen könnt.</p></div>
+<div><h3>Alles aus einer Hand</h3><p>Ein Ansprechpartner für Technik, Zelt, Personal und Musik.</p></div>
+</div></section>
+
+<section id="kontakt"><h2>Kontakt</h2>
+<p>Steven Wilke, Geschäftsführer<br><a href="tel:+4917641745539">0176 41745539</a><br><a href="mailto:info-stagepulseevents@gmx.de">info-stagepulseevents@gmx.de</a></p>
+<button class="btn" data-ask>Anfrage stellen</button></section>
+</main>
+<footer><img src="img/logo.jpg" alt="StagePulse Events" width="90" height="48"><span>© StagePulse Events</span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></footer>
+
+<dialog id="dlg"><form id="f" method="post" action="api/anfrage.php">
+<h2>Anfrage stellen</h2>
+<fieldset><legend>Was brauchst du?</legend><div id="opts"></div></fieldset>
+<label>Art des Events<select name="event"><option>Dorffest<option>Stadtfest<option>Firmenfeier<option>Lichterfest<option>Geburtstag<option>Hochzeit<option>Clubparty</select></label>
+<div class="two"><label>Datum<input type="date" name="date" required></label><label>Gäste<input type="number" name="guests" min="1" max="600" required></label></div>
+<label>Ort<input name="place" required></label>
+<label>Name<input name="name" required autocomplete="name"></label>
+<div class="two"><label>Telefon<input type="tel" name="phone" required></label><label>E-Mail<input type="email" name="email" required></label></div>
+<label>Wünsche<textarea name="msg" rows="3"></textarea></label>
+<input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+<label class="chk"><input type="checkbox" name="consent" value="1" required> Ich stimme der Verarbeitung meiner Daten zur Bearbeitung der Anfrage zu (<a href="datenschutz.html">Datenschutz</a>).</label>
+<p id="msg" role="status"></p>
+<div class="row"><button class="btn" type="submit">Anfrage senden</button><button class="btn ghost" type="button" id="x">Schließen</button></div>
+</form></dialog>
+<script src="script.js"></script>
+</body></html>
