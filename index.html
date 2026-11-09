@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#09090d">
+  <meta name="description" content="StagePulse Events – Dein Event. Unser Puls. Ton- und Lichttechnik, Zeltverleih, Ausstattung, Catering-Personal, Plakatier- und DJ-Service.">
+  <meta property="og:title" content="StagePulse Events – Dein Event. Unser Puls.">
+  <meta property="og:description" content="Technik, Ausstattung und Services für Veranstaltungen, die in Erinnerung bleiben.">
+  <meta property="og:type" content="website">
+  <title>StagePulse Events – Dein Event. Unser Puls.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="config.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="site-header">
+    <a class="brand" href="#start" aria-label="StagePulse Events Startseite">
+      <span class="brand-mark"><i></i><i></i><i></i></span>
+      <span>STAGEPULSE<span class="brand-light"> EVENTS</span></span>
+    </a>
+    <button class="menu-toggle" aria-label="Menü öffnen" aria-expanded="false">☰</button>
+    <nav class="main-nav">
+      <a href="#leistungen">Leistungen</a><a href="#ueber-uns">Über uns</a><a href="#ablauf">So läuft's</a>
+      <a class="nav-cta" href="#anfrage">Projekt anfragen <span>↗</span></a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="start">
+      <div class="hero-image"></div>
+      <div class="hero-content reveal">
+        <div class="eyebrow"><span class="pulse-dot"></span> EVENT-SERVICE MIT ENERGIE</div>
+        <h1>Dein Event.<br><span>Unser Puls.</span></h1>
+        <p class="hero-copy">Von der ersten Idee bis zum letzten Beat: Wir liefern die Ausstattung, Technik und Unterstützung für Veranstaltungen, die Menschen zusammenbringen.</p>
+        <div class="hero-actions"><a class="button button-primary" href="#anfrage">Event anfragen <span>↗</span></a><a class="text-link" href="#leistungen">Leistungen entdecken <span>↓</span></a></div>
+        <div class="hero-proof"><div class="proof-line"></div><span>Dein zuverlässiger Partner für Veranstaltungen</span></div>
+      </div>
+      <div class="hero-stamp"><span>GUTE EVENTS</span><b>BEGINNEN<br>MIT PULS.</b><span class="stamp-orbit">✳</span></div>
+      <div class="hero-bottom"><span>01 / 06 — WAS WIR TUN</span><span>TECHNIK · VERLEIH · SERVICE</span></div>
+    </section>
+
+    <section class="intro section-wrap" id="ueber-uns">
+      <div class="section-kicker">01 — WILLKOMMEN BEI STAGEPULSE</div>
+      <div class="intro-grid">
+        <h2>Wir machen aus<br>Plänen <span>Erlebnisse.</span></h2>
+        <div><p class="lead">Gute Veranstaltungen entstehen, wenn die richtigen Dinge zusammenkommen: Menschen, Atmosphäre und ein Team, das mitdenkt.</p><p>StagePulse Events unterstützt private Feiern, Vereinsfeste und Firmenveranstaltungen mit flexiblen Mietlösungen und passenden Services. Persönlich, unkompliziert und mit Leidenschaft für Events.</p><a class="under-link" href="#anfrage">Erzähl uns von deinem Event <span>↗</span></a></div>
+      </div>
+    </section>
+
+    <section class="services section-wrap" id="leistungen">
+      <div class="section-heading"><div><div class="section-kicker">02 — UNSERE LEISTUNGEN</div><h2>Alles für deinen<br><span>großen Moment.</span></h2></div><p>Einzelne Bausteine oder mehrere Services kombiniert – wir finden die passende Lösung für deine Veranstaltung.</p></div>
+      <div class="service-grid">
+        <article class="service-card service-wide">
+          <img src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1400&q=85" alt="Live-Veranstaltung mit professioneller Ton- und Lichttechnik" loading="lazy">
+          <div class="card-shade"></div><div class="service-number">01 / TECHNIK</div><div class="service-info"><h3>Ton- &amp; Lichttechnik</h3><p>Passende Technik für Dorf- und Stadtfeste, Firmenfeiern, Hochzeiten, Geburtstage und Clubpartys bis zu 600 Personen. Keine Bühnenvermietung.</p><button class="card-link inquiry-shortcut" data-service="Ton- und Lichttechnik">Technik anfragen <span>↗</span></button></div>
+        </article>
+        <article class="service-card">
+          <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1000&q=85" alt="Festlich dekoriertes Zelt für eine Veranstaltung" loading="lazy">
+          <div class="card-shade"></div><div class="service-number">02 / LOCATIONS</div><div class="service-info"><h3>Bierzelte &amp; Zelte</h3><p>Flexible Zeltmöglichkeiten als wettergeschützter Treffpunkt für dein Event.</p><button class="card-link inquiry-shortcut" data-service="Bierzelt- und Zeltverleih">Zelt anfragen <span>↗</span></button></div>
+        </article>
+        <article class="service-card">
+          <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1000&q=85" alt="Tische und Stühle für ein Event" loading="lazy">
+          <div class="card-shade"></div><div class="service-number">03 / AUSSTATTUNG</div><div class="service-info"><h3>Garnituren &amp; Stehtische</h3><p>Bierzeltgarnituren, Tische und Stehtische für gesellige Runden und gute Gespräche.</p><button class="card-link inquiry-shortcut" data-service="Bierzeltgarnituren und Stehtische">Ausstattung anfragen <span>↗</span></button></div>
+        </article>
+        <article class="service-card">
+          <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1000&q=85" alt="Servicepersonal bei einer Veranstaltung" loading="lazy">
+          <div class="card-shade"></div><div class="service-number">04 / TEAM</div><div class="service-info"><h3>Catering-Personal</h3><p>Unterstützung mit Personal, damit bei deiner Veranstaltung alles rundläuft.</p><button class="card-link inquiry-shortcut" data-service="Catering-Personal-Service">Personal anfragen <span>↗</span></button></div>
+        </article>
+        <article class="service-card">
+          <img src="https://images.unsplash.com/photo-1503428593586-e225b39bbcd0?auto=format&fit=crop&w=1000&q=85" alt="Plakatwerbung für eine Veranstaltung" loading="lazy">
+          <div class="card-shade"></div><div class="service-number">05 / PROMOTION</div><div class="service-info"><h3>Plakatier-Service</h3><p>Deine Veranstaltung sichtbar machen – mit professioneller Plakatierung.</p><button class="card-link inquiry-shortcut" data-service="Plakatier-Service">Service anfragen <span>↗</span></button></div>
+        </article>
+        <article class="service-card service-wide">
+          <img src="https://images.unsplash.com/photo-1571266028243-d220c9c3b6c8?auto=format&fit=crop&w=1400&q=85" alt="DJ an einem Mischpult mit Lichtshow" loading="lazy">
+          <div class="card-shade"></div><div class="service-number">06 / SOUND</div><div class="service-info"><h3>DJ-Allround-Service</h3><p>Musikalische Begleitung für unterschiedliche Veranstaltungen und Feierlichkeiten – abgestimmt auf Publikum und Anlass.</p><button class="card-link inquiry-shortcut" data-service="DJ-Allround-Service">DJ anfragen <span>↗</span></button></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="feature-band">
+      <div class="feature-image"></div><div class="feature-content"><div class="section-kicker">03 — GEMEINSAM PLANEN</div><h2>Du hast den Anlass.<br><span>Wir den Überblick.</span></h2><p>Ob kleine Feier oder Veranstaltung mit vielen Gästen: Teile uns mit, was du planst. Wir melden uns persönlich, um die Details zu besprechen.</p><a class="button button-primary" href="#anfrage">Unverbindlich anfragen <span>↗</span></a></div>
+    </section>
+
+    <section class="process section-wrap" id="ablauf">
+      <div class="section-kicker">04 — IN DREI SCHRITTEN</div><h2>Einfach. Persönlich.<br><span>Gut organisiert.</span></h2>
+      <div class="process-grid"><div><b>01</b><h3>Du erzählst.</h3><p>Wähle deine gewünschten Leistungen und sende uns die Eckdaten deiner Veranstaltung.</p></div><div><b>02</b><h3>Wir prüfen.</h3><p>Wir schauen uns deine Anfrage an und melden uns zur Abstimmung der Einzelheiten.</p></div><div><b>03</b><h3>Es wird konkret.</h3><p>Gemeinsam besprechen wir die passende Lösung für dein Event. Eine Anfrage ist noch keine Buchung.</p></div></div>
+    </section>
+
+    <section class="contact section-wrap" id="anfrage">
+      <div class="contact-copy"><div class="section-kicker">05 — DEIN EVENT BEGINNT HIER</div><h2>Lass uns etwas<br><span>auf die Beine stellen.</span></h2><p>Erzähl uns, was du planst. Je mehr wir wissen, desto besser können wir deine Anfrage einschätzen.</p><div class="contact-detail"><span>TELEFON</span><a href="tel:+4917641745539">0176 41745539</a></div><div class="contact-detail"><span>E-MAIL</span><a href="mailto:info-stagepulseevents@gmx.de">info-stagepulseevents@gmx.de</a></div></div>
+      <form class="inquiry-form" id="inquiry-form">
+        <div class="form-top"><span>UNVERBINDLICHE ANFRAGE</span><span>01 — 02</span></div>
+        <div class="form-progress"><i></i></div>
+        <div class="form-step active" data-step="1">
+          <h3>Was planst du?</h3><p class="form-hint">Wähle eine oder mehrere Leistungen aus.</p>
+          <div class="service-options">
+            <label><input type="checkbox" name="services" value="Ton- und Lichttechnik"><span>Ton- &amp; Lichttechnik</span></label>
+            <label><input type="checkbox" name="services" value="Bierzelt- und Zeltverleih"><span>Zelte</span></label>
+            <label><input type="checkbox" name="services" value="Bierzeltgarnituren und Stehtische"><span>Garnituren &amp; Stehtische</span></label>
+            <label><input type="checkbox" name="services" value="Catering-Personal-Service"><span>Catering-Personal</span></label>
+            <label><input type="checkbox" name="services" value="Plakatier-Service"><span>Plakatier-Service</span></label>
+            <label><input type="checkbox" name="services" value="DJ-Allround-Service"><span>DJ-Service</span></label>
+          </div>
+          <div class="form-grid"><label>Veranstaltungsart<input name="event_type" placeholder="z. B. Firmenfeier, Hochzeit" required></label><label>Geschätzte Gästezahl<input name="guest_count" type="number" min="1" placeholder="z. B. 150"></label><label>Veranstaltungsdatum<input name="event_date" type="date" required></label><label>Veranstaltungsort<input name="venue" placeholder="Ort / PLZ" required></label></div>
+          <button class="button button-primary form-next" type="button">Weiter zu deinen Kontaktdaten <span>→</span></button>
+        </div>
+        <div class="form-step" data-step="2">
+          <h3>Wie erreichen wir dich?</h3><p class="form-hint">Wir verwenden deine Angaben ausschließlich zur Bearbeitung deiner Anfrage.</p>
+          <div class="form-grid"><label>Vor- und Nachname<input name="full_name" autocomplete="name" required></label><label>Telefonnummer<input name="phone" type="tel" autocomplete="tel" required></label><label class="span-two">E-Mail-Adresse<input name="email" type="email" autocomplete="email" required></label><label class="span-two">Mengen / Anzahl<textarea name="quantities" rows="2" placeholder="z. B. 10 Garnituren, 2 Stehtische, gewünschte Technik ..."></textarea></label><label class="span-two">Weitere Wünsche<textarea name="message" rows="3" placeholder="Erzähl uns mehr über dein Event ..."></textarea></label></div>
+          <label class="consent"><input type="checkbox" name="privacy" required><span>Ich habe die <a href="datenschutz.html" target="_blank">Datenschutzhinweise</a> gelesen und stimme der Verarbeitung meiner Angaben zur Bearbeitung der Anfrage zu.</span></label>
+          <div class="form-actions"><button class="button button-ghost form-back" type="button">← Zurück</button><button class="button button-primary" type="submit">Anfrage senden <span>↗</span></button></div>
+        </div>
+        <div class="form-success" hidden><div class="success-icon">✓</div><h3>Danke für deine Anfrage!</h3><p>Deine Nachricht wurde übermittelt. Du erhältst eine Eingangsbestätigung per E-Mail, sobald der Versanddienst eingerichtet ist.</p></div>
+        <div class="form-error" role="alert" hidden></div>
+        <p class="form-footnote">Mit dem Absenden entsteht keine verbindliche Buchung.</p>
+      </form>
+    </section>
+  </main>
+  <footer class="site-footer"><a class="brand" href="#start"><span class="brand-mark"><i></i><i></i><i></i></span><span>STAGEPULSE<span class="brand-light"> EVENTS</span></span></a><span>© <span id="year"></span> StagePulse Events · Dein Event. Unser Puls.</span><div><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="admin.html">Mitarbeiter-Login</a></div></footer>
+  <dialog id="notice-dialog"><div class="dialog-inner"><button class="dialog-close" aria-label="Schließen">×</button><p class="section-kicker">STAGEPULSE EVENTS</p><h3>Eine kurze Nachricht</h3><p id="dialog-message"></p></div></dialog>
+</body>
+</html>
