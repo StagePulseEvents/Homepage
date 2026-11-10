@@ -7,7 +7,7 @@
  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const fmt=s=>s?new Date(s).toLocaleString("de-DE"):"—";
  async function init(){const {data:{session}}=await sb.auth.getSession();if(session)await enter(session.user);}
- async function enter(user){currentUser=user;$("#login-panel").hidden=true;$("#dashboard").hidden=false;$("#user-label").textContent=user.email;await loadRequests();const {data:profile}=await sb.from("profiles").select("role").eq("id",user.id).single();if(profile?.role==="admin"){ $("#employee-panel").hidden=false; await loadEmployees(); }}
+ async function enter(user){currentUser=user;$("#login-panel").hidden=true;$("#dashboard").hidden=false;$("#user-label").textContent=user.email;await loadRequests();await loadEvents();const {data:profile}=await sb.from("profiles").select("role").eq("id",user.id).single();if(profile?.role==="admin"){ $("#employee-panel").hidden=false; await loadEmployees(); }}
  $("#login-form").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget);const {data,error}=await sb.auth.signInWithPassword({email:f.get("email"),password:f.get("password")});if(error){$("#login-error").textContent="Anmeldung fehlgeschlagen. Bitte Zugangsdaten prüfen.";return;}$("#login-error").textContent="";await enter(data.user);});
  $("#logout").addEventListener("click",async()=>{await sb.auth.signOut();location.reload();});
  $("#refresh").addEventListener("click",loadRequests);$("#status-filter").addEventListener("change",render);$("#search").addEventListener("input",render);
@@ -31,5 +31,20 @@
   }));
 }
 $("#invite-form").addEventListener("submit",async e=>{e.preventDefault();const email=new FormData(e.currentTarget).get("email");const {error}=await sb.functions.invoke("invite-employee",{body:{email}});$("#invite-message").textContent=error?"Einladung fehlgeschlagen. Prüfe die Admin-Berechtigung.":"Einladung wurde angefordert. Der Mitarbeiter erhält eine E-Mail, sofern SMTP eingerichtet ist.";if(!error){e.currentTarget.reset();await loadEmployees();}});
+ 
+ let events=[],editingId=null;
+ const dde=d=>{const [y,m,t]=d.split("-");return t+"."+m+"."+y;};
+ async function loadEvents(){const {data,error}=await sb.from("public_events").select("*").order("event_date",{ascending:true});if(error){$("#event-error").textContent="Events konnten nicht geladen werden. Wurde supabase/events.sql ausgeführt?";return;}events=data||[];renderEvents();}
+ function renderEvents(){const today=new Date().toLocaleDateString("sv-SE");$("#event-list").innerHTML=events.length?events.map(e=>{const past=e.event_date<today,label=past?"Vergangen":e.published?"Online":"Entwurf";return `<article class="request-row event-row" data-id="${e.id}"><div><h3>${esc(e.title)}</h3><p>${dde(e.event_date)}${e.start_time?" · "+esc(e.start_time.slice(0,5))+" Uhr":""} · ${esc(e.location)}</p></div><span class="status ${e.published&&!past?"status-angenommen":""}">${label}</span><div class="detail-actions" style="margin:0"><button class="button button-ghost" data-act="edit">Bearbeiten</button><button class="button button-ghost" data-act="del">Löschen</button></div></article>`;}).join(""):'<p class="form-hint">Noch keine Events eingetragen.</p>';}
+ function resetEventForm(){editingId=null;$("#event-form").reset();$("#event-form").elements.published.checked=true;$("#event-save").textContent="Event speichern";$("#event-cancel").hidden=true;}
+ $("#event-cancel").addEventListener("click",resetEventForm);
+ $("#event-list").addEventListener("click",async ev=>{const btn=ev.target.closest("button[data-act]");if(!btn)return;const id=btn.closest(".event-row").dataset.id,e=events.find(x=>x.id===id);if(!e)return;
+  if(btn.dataset.act==="edit"){const f=$("#event-form").elements;editingId=id;f.title.value=e.title;f.event_date.value=e.event_date;f.start_time.value=e.start_time?e.start_time.slice(0,5):"";f.location.value=e.location;f.description.value=e.description||"";f.link_url.value=e.link_url||"";f.published.checked=e.published;$("#event-save").textContent="Änderungen speichern";$("#event-cancel").hidden=false;$("#event-form").scrollIntoView({behavior:"smooth",block:"center"});}
+  else if(confirm("Event „"+e.title+"“ wirklich löschen?")){const {error}=await sb.from("public_events").delete().eq("id",id);if(error){$("#event-error").textContent="Löschen fehlgeschlagen.";return;}if(editingId===id)resetEventForm();await loadEvents();}});
+ $("#event-form").addEventListener("submit",async ev=>{ev.preventDefault();const f=ev.currentTarget.elements,err=$("#event-error");err.textContent="";
+  const link=f.link_url.value.trim();if(link&&!/^https?:\/\//i.test(link)){err.textContent="Der Link muss mit http:// oder https:// beginnen.";return;}
+  const row={title:f.title.value.trim(),event_date:f.event_date.value,start_time:f.start_time.value||null,location:f.location.value.trim(),description:f.description.value.trim()||null,link_url:link||null,published:f.published.checked};
+  const q=editingId?sb.from("public_events").update(row).eq("id",editingId):sb.from("public_events").insert({...row,created_by:currentUser.email});
+  const {error}=await q;if(error){err.textContent="Event konnte nicht gespeichert werden.";return;}resetEventForm();await loadEvents();});
  init();
 })();

@@ -28,5 +28,47 @@
     }catch(err){console.error(err);showError("Deine Anfrage konnte gerade nicht gesendet werden. Bitte versuche es erneut oder nutze Telefon/E-Mail.");}
     finally{submit.disabled=false;submit.innerHTML='Anfrage senden <span>↗</span>';}
   });
+  const row=$("#occ-row"),cnt=$("#occ-count");
+  if(row){const cards=$$(".occ-card",row),pad=n=>String(n).padStart(2,"0");
+    const cur=()=>Math.min(cards.length-1,Math.round(row.scrollLeft/(cards[0].offsetWidth+16)));
+    const upd=()=>{cnt.textContent=pad(cur()+1)+" / "+pad(cards.length)};
+    const go=d=>row.scrollBy({left:d*(cards[0].offsetWidth+16),behavior:"smooth"});
+    $("#occ-prev").onclick=()=>go(-1);$("#occ-next").onclick=()=>go(1);row.addEventListener("scroll",upd,{passive:true});}
+  $$(".adv-filter button").forEach(b=>b.addEventListener("click",()=>{$$(".adv-filter button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));$$(".adv").forEach(c=>c.hidden=b.dataset.f!=="all"&&c.dataset.c!==b.dataset.f);}));
+  if(!matchMedia("(prefers-reduced-motion: reduce)").matches){const ms=$$(".moment");let t=false;const par=()=>{ms.forEach(m=>{const r=m.getBoundingClientRect();m.style.setProperty("--py",(((r.top+r.height/2)-innerHeight/2)*-.06).toFixed(1)+"px")});t=false};addEventListener("scroll",()=>{if(!t){t=true;requestAnimationFrame(par)}},{passive:true});par();}
+  let evData=[];const evBox=$("#event-list");
+  if(evBox){(async()=>{
+    const cfg=window.STAGEPULSE_CONFIG||{},esc=s=>String(s??"").replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]));
+    const empty=()=>{evBox.innerHTML='<p class="events-empty">Aktuell sind keine öffentlichen Events geplant. Schau bald wieder vorbei!</p>'};
+    if(!window.supabase||!cfg.SUPABASE_URL||cfg.SUPABASE_URL.includes("DEIN-PROJEKT")){empty();return;}
+    try{
+      const sb=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY),today=new Date().toLocaleDateString("sv-SE");
+      const {data,error}=await sb.from("public_events").select("title,event_date,start_time,location,description,link_url").eq("published",true).gte("event_date",today).order("event_date",{ascending:true}).order("start_time",{ascending:true,nullsFirst:false}).limit(6);
+      if(error)throw error;if(!data||!data.length){empty();return;}
+      const mon=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+      evData=data;
+      evBox.innerHTML=data.map((e,i)=>{const [y,m,d]=e.event_date.split("-");const time=e.start_time?e.start_time.slice(0,5)+" Uhr · ":"";
+        return `<article class="event-card" data-i="${i}"><time class="event-date" datetime="${esc(e.event_date)}"><b>${Number(d)}</b><span>${mon[Number(m)-1]}</span></time><div class="event-body"><h3>${esc(e.title)}</h3><p class="event-meta">${time}${esc(e.location)}</p>${e.description?`<p class="event-short">${esc(e.description)}</p>`:""}<button type="button" class="event-open">Details &amp; Route ↗</button></div></article>`;}).join("");
+    }catch(err){console.error(err);empty();}
+  })();}
+  const ed=$("#event-dialog");
+  if(evBox&&ed){
+    const mapBox=$("#ed-map"),enc=encodeURIComponent,h=s=>String(s??"").replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]));
+    const openEv=i=>{const e=evData[i];if(!e)return;const [y,m,d]=e.event_date.split("-");
+      $("#ed-date").textContent=new Date(+y,m-1,+d).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+      $("#ed-title").textContent=e.title;
+      $("#ed-meta").textContent=(e.start_time?e.start_time.slice(0,5)+" Uhr · ":"")+e.location;
+      const desc=$("#ed-desc");desc.textContent=e.description||"";desc.hidden=!e.description;
+      const link=/^https?:\/\//i.test(e.link_url||"")?`<a class="button button-ghost" href="${h(e.link_url)}" target="_blank" rel="noopener noreferrer">Mehr Infos ↗</a>`:"";
+      $("#ed-actions").innerHTML=`<a class="button button-primary" href="https://www.google.com/maps/dir/?api=1&destination=${enc(e.location)}" target="_blank" rel="noopener noreferrer">Route starten ↗</a>${link}`;
+      mapBox.dataset.loc=e.location;
+      mapBox.innerHTML='<div class="map-consent"><p>Die Karte wird von Google Maps geladen. Dabei werden Daten an Google übertragen (<a href="datenschutz.html" target="_blank" rel="noopener">Datenschutz</a>).</p><button type="button" class="button button-ghost" id="ed-map-load">Karte laden</button></div>';
+      ed.scrollTop=0;ed.showModal();};
+    mapBox.addEventListener("click",ev=>{if(!ev.target.closest("#ed-map-load"))return;const f=document.createElement("iframe");f.src="https://maps.google.com/maps?q="+enc(mapBox.dataset.loc)+"&hl=de&z=15&output=embed";f.title="Karte: "+mapBox.dataset.loc;f.loading="lazy";f.referrerPolicy="no-referrer-when-downgrade";f.allowFullscreen=true;mapBox.replaceChildren(f);});
+    evBox.addEventListener("click",ev=>{const c=ev.target.closest(".event-card");if(c)openEv(Number(c.dataset.i));});
+    $("#ed-close").addEventListener("click",()=>ed.close());
+    ed.addEventListener("click",ev=>{if(ev.target===ed)ed.close();});
+    ed.addEventListener("close",()=>mapBox.replaceChildren());
+  }
   const dialog=$("#notice-dialog");$(".dialog-close").addEventListener("click",()=>dialog.close());
 })();
