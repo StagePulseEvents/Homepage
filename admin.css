@@ -32,3 +32,11 @@
 @media(max-width:850px){.request-row.req-row{grid-template-columns:1fr!important}.event-row{grid-template-columns:1fr!important}.row-actions{justify-content:flex-start}}
 .employee-panel #invite-form{display:block!important;max-width:none!important;width:100%}.employee-panel #invite-form input,.employee-panel #invite-form select{width:100%}.employee-panel #invite-form .button{width:auto;flex:none}.employee-panel #invite-form .form-actions .button{flex:0 0 auto}
 .employee-panel .team-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}.employee-panel{max-width:none}
+#status-dialog .request-dialog-content,#member-dialog .request-dialog-content,#member-dialog.request-dialog-content{min-width:0!important;width:100%!important;max-width:100%;box-sizing:border-box;padding:28px}
+#status-dialog,#member-dialog{overflow-x:hidden;max-height:92vh;padding:0}
+#status-dialog .dialog-close{float:none;position:absolute;top:14px;right:16px}
+#status-dialog .request-dialog-content,#member-dialog .request-dialog-content{position:relative;background:transparent!important;border:0!important}
+#status-dialog .form-actions{margin-top:18px;flex-wrap:wrap}#status-dialog .form-actions .button{flex:1 1 150px}
+#status-dialog label{display:grid;gap:6px;color:var(--muted);font-size:.9rem}
+@media(max-width:560px){#status-dialog .form-actions,#member-dialog .form-actions{flex-direction:column}#status-dialog .form-actions .button,#member-dialog .form-actions .button{flex:none;width:100%}}
+@media(max-width:560px){.dashboard-top{flex-wrap:wrap;gap:14px}.dashboard-top h1{font-size:clamp(2.2rem,12vw,3.4rem)}}
