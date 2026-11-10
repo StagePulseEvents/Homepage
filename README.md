@@ -90,3 +90,8 @@ stagepulse-events/
         ├── manage-inquiry/
         └── invite-employee/
 ```
+
+## Anfragen löschen / Aufbewahrung
+- Im Admin-Bereich kann jede Anfrage in der Detailansicht über „Anfrage löschen“ endgültig entfernt werden. Dafür muss die Edge Function neu bereitgestellt werden: `supabase functions deploy manage-inquiry`.
+- `supabase/aufbewahrung.sql` (optional) löscht Anfragen automatisch nach 30 Tagen per pg_cron.
+- Öffentliche Events: `supabase/events.sql` ausführen.

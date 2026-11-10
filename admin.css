@@ -9,3 +9,5 @@
 .status-neu{background:#F28C1B33;color:#ffc47a}.admin-main h1,.admin-main h2,.admin-main h3,.request-dialog-content h2{font-family:var(--font)}
 
 .events-panel{margin:55px 0 0;border-top:1px solid var(--line);padding-top:30px}.events-panel h2{font-size:1.6rem}.events-panel .inquiry-form{margin:18px 0 24px}.event-row{grid-template-columns:1fr 110px auto!important}@media(max-width:650px){.event-row{grid-template-columns:1fr!important}}
+
+.btn-danger{border-color:#ff6b6b!important;color:#ffb0b0!important}.btn-danger:hover{background:#ff6b6b22!important}
