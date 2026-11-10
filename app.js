@@ -36,6 +36,12 @@
     $("#occ-prev").onclick=()=>go(-1);$("#occ-next").onclick=()=>go(1);row.addEventListener("scroll",upd,{passive:true});}
   $$(".adv-filter button").forEach(b=>b.addEventListener("click",()=>{$$(".adv-filter button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));$$(".adv").forEach(c=>c.hidden=b.dataset.f!=="all"&&c.dataset.c!==b.dataset.f);}));
   if(!matchMedia("(prefers-reduced-motion: reduce)").matches){const ms=$$(".moment");let t=false;const par=()=>{ms.forEach(m=>{const r=m.getBoundingClientRect();m.style.setProperty("--py",(((r.top+r.height/2)-innerHeight/2)*-.06).toFixed(1)+"px")});t=false};addEventListener("scroll",()=>{if(!t){t=true;requestAnimationFrame(par)}},{passive:true});par();}
+  const momentSlots=$$("[data-slot]"),cfg0=window.STAGEPULSE_CONFIG||{};
+  if(momentSlots.length&&window.supabase&&cfg0.SUPABASE_URL&&!cfg0.SUPABASE_URL.includes("DEIN-PROJEKT")){(async()=>{try{
+    const sb0=window.supabase.createClient(cfg0.SUPABASE_URL,cfg0.SUPABASE_ANON_KEY),{data,error}=await sb0.from("moment_slots").select("slot,image_path,alt_text");if(error)throw error;
+    (data||[]).forEach(s=>{if(!s.image_path)return;const fig=document.querySelector(`[data-slot="${s.slot}"]`);if(!fig)return;const img=document.createElement("img");
+      img.src=cfg0.SUPABASE_URL+"/storage/v1/object/public/moments/"+encodeURIComponent(s.image_path);img.alt=s.alt_text||"Moment bei einem StagePulse Event";img.loading="lazy";img.decoding="async";fig.classList.remove("moment-slot");fig.replaceChildren(img);});
+  }catch(e){console.error(e);}})();}
   let evData=[];const evBox=$("#event-list");
   if(evBox){(async()=>{
     const cfg=window.STAGEPULSE_CONFIG||{},esc=s=>String(s??"").replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]));
