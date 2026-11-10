@@ -36,14 +36,14 @@ Supabase CLI installieren und im Projektverzeichnis ausführen:
 ```bash
 supabase login
 supabase link --project-ref DEIN_PROJECT_REF
-supabase secrets set RESEND_API_KEY=re_... MAIL_FROM="StagePulse Events <anfragen@DEINE-DOMAIN.de>" INTERNAL_NOTIFY_EMAIL=info-stagepulseevents@gmx.de
+supabase secrets set SMTP_USER=info-stagepulseevents@gmx.de SMTP_PASS="DEIN-GMX-PASSWORT" INTERNAL_NOTIFY_EMAIL=info-stagepulseevents@gmx.de   # oder im Dashboard: Edge Functions -> Secrets
 supabase functions deploy submit-inquiry
 supabase functions deploy manage-inquiry
 supabase functions deploy invite-employee
 ```
 Die Supabase-Standardvariablen `SUPABASE_URL` und `SUPABASE_SERVICE_ROLE_KEY` werden in Edge Functions bereitgestellt. Den Service-Role-Key niemals in das Frontend übernehmen.
 
-Resend: Domain verifizieren und Absenderadresse einrichten. Für echte Zustellung ist eine verifizierte Absenderdomain dringend empfohlen. Prüfe SPF/DKIM/DMARC und Testzustellung. Wenn kein Resend-Key gesetzt ist, wird die Anfrage gespeichert, aber keine E-Mail versendet.
+E-Mail-Versand: läuft direkt über das GMX-Postfach (SMTP, `mail.gmx.net:465`). Dafür in GMX unter Einstellungen -> POP3/IMAP den Abruf aktivieren. Kein Resend und kein weiterer Dienst nötig. Absender ist immer die GMX-Adresse.
 
 ## 4. GitHub Pages veröffentlichen
 - Repository erstellen und Quellcode pushen.
@@ -100,5 +100,5 @@ stagepulse-events/
 1. **SQL:** `supabase/admin-erweiterung.sql` im Supabase SQL Editor ausführen (Mitarbeiterfelder, Bilderverwaltung, Bilder-Speicher).
 2. **Funktion bereitstellen:** `supabase functions deploy manage-team` (ersetzt `invite-employee`, die alte Funktion kann in Supabase gelöscht werden). `manage-inquiry` ebenfalls neu bereitstellen.
 3. **Supabase → Authentication → URL Configuration:** Site URL = Adresse eurer Website; unter *Redirect URLs* zusätzlich `https://EURE-DOMAIN/admin.html` eintragen.
-4. **Supabase → Authentication → SMTP:** eigenen Mail-Anbieter (z. B. Resend) eintragen. Der Standardversand von Supabase erlaubt nur sehr wenige Mails pro Stunde und nur an Teammitglieder des Projekts, daher scheitern Einladungen sonst.
+4. **E-Mail-Versand:** Secrets `SMTP_USER` (GMX-Adresse) und `SMTP_PASS` (GMX-Passwort) in Supabase unter Edge Functions → Secrets anlegen. Damit laufen Annahme-Mails, Eingangsbestätigung und Einladungen. Supabase-Authentication-SMTP wird nicht benötigt.
 5. Eingeladene Personen legen ihr Passwort über den Link in der E-Mail auf `admin.html` fest.

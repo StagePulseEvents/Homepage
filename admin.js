@@ -47,9 +47,13 @@
   $("#internal-note").value="";await loadNotes();$("#request-dialog").showModal();}
  function openStatus(r){statusTarget=r;$("#status-name").textContent=r.full_name;$("#status-current").textContent="Aktueller Status: "+r.status;$("#status-select").innerHTML=statuses.map(s=>`<option ${s===r.status?"selected":""}>${s}</option>`).join("");$("#status-error").textContent="";$("#status-dialog").showModal();}
  $("#status-save").addEventListener("click",async()=>{if(!statusTarget)return;const btn=$("#status-save"),status=$("#status-select").value;btn.disabled=true;
-  const {error}=await sb.functions.invoke("manage-inquiry",{body:{action:"status",inquiry_id:statusTarget.id,status}});btn.disabled=false;
+  const {data,error}=await sb.functions.invoke("manage-inquiry",{body:{action:"status",inquiry_id:statusTarget.id,status}});btn.disabled=false;
   if(error){$("#status-error").textContent=await fnError(error,"manage-inquiry");return;}
-  $("#status-dialog").close();statusTarget=null;await loadRequests();});
+  $("#status-dialog").close();statusTarget=null;await loadRequests();flashMail(data);});
+ function flashMail(d){const ok=$("#dashboard-info"),er=$("#dashboard-error");ok.textContent="";if(!d)return;
+  if(d.mail==="sent")ok.textContent="✓ Status gespeichert. Die Bestätigungs-E-Mail an "+d.to+" wurde gesendet.";
+  else if(d.mail==="failed")er.textContent="Status gespeichert, aber die E-Mail an "+d.to+" konnte nicht gesendet werden. "+(d.mail_error||"");
+  else ok.textContent="✓ Status gespeichert.";}
  $("#status-cancel").addEventListener("click",()=>$("#status-dialog").close());$("#close-status").addEventListener("click",()=>$("#status-dialog").close());
  async function deleteRequest(r){if(!confirm("Anfrage von „"+r.full_name+"“ endgültig löschen?\nDie Anfrage und alle internen Notizen werden unwiderruflich entfernt."))return;
   const {error}=await sb.functions.invoke("manage-inquiry",{body:{action:"delete",inquiry_id:r.id}});
