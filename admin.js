@@ -19,7 +19,7 @@
  }
  async function enter(user){
   currentUser=user;$("#login-panel").hidden=true;$("#dashboard").hidden=false;$("#user-label").textContent=user.email;
-  await Promise.all([loadRequests(),loadEvents(),loadMoments()]);
+  await Promise.all([loadRequests(),loadEvents(),loadMoments(),loadTeamSite()]);
   const {data:profile}=await sb.from("profiles").select("role").eq("id",user.id).single();
   if(profile?.role==="admin"){$("#employee-panel").hidden=false;await loadTeam();}
  }
@@ -83,8 +83,8 @@
  async function loadMoments(){const {data,error}=await sb.from("moment_slots").select("*");if(error){$("#moment-error").textContent="Bilder-Einstellungen konnten nicht geladen werden. Wurde supabase/admin-erweiterung.sql ausgeführt?";}
   slots={};(data||[]).forEach(s=>slots[s.slot]=s);renderMoments();}
  function renderMoments(){$("#moment-grid").innerHTML=[1,2,3,4,5,6].map(n=>{const s=slots[n]||{},has=!!s.image_path;
-  return `<article class="slot-card" data-slot="${n}"><h4>Bildplatz ${n}</h4><div class="slot-preview">${has?`<img src="${esc(pubUrl(s.image_path))}" alt="Vorschau Bildplatz ${n}">`:"<span>Noch kein Bild</span>"}</div><label>Bildbeschreibung<input class="slot-alt" maxlength="200" value="${esc(s.alt_text||"")}" placeholder="z. B. Stadtfest 2026, Bühne bei Nacht"></label><div class="row-actions"><label class="button button-primary file-btn">${has?"Bild austauschen":"Bild hochladen"}<input type="file" accept="image/*" hidden></label><button class="button button-ghost btn-danger" data-act="rm" ${has?"":"disabled"}>Löschen</button></div></article>`;}).join("");}
- async function toImage(file){const bmp=await createImageBitmap(file),sc=Math.min(1,1600/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.round(bmp.width*sc);c.height=Math.round(bmp.height*sc);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+  return `<article class="slot-card" data-slot="${n}"><h4>Bildplatz ${n}</h4><div class="slot-preview">${has?`<img src="${esc(pubUrl(s.image_path))}" alt="Vorschau Bildplatz ${n}">`:"<span>Noch kein Bild</span>"}</div><label>Bildtext (erscheint unter dem Bild)<input class="slot-alt" maxlength="200" value="${esc(s.alt_text||"")}" placeholder="z. B. Stadtfest 2026, Bühne bei Nacht"></label><div class="row-actions"><label class="button button-primary file-btn">${has?"Bild austauschen":"Bild hochladen"}<input type="file" accept="image/*" hidden></label><button class="button button-ghost btn-danger" data-act="rm" ${has?"":"disabled"}>Löschen</button></div></article>`;}).join("");}
+ async function toImage(file,max=1600){const bmp=await createImageBitmap(file),sc=Math.min(1,max/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.round(bmp.width*sc);c.height=Math.round(bmp.height*sc);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
   const w=await new Promise(r=>c.toBlob(r,"image/webp",.82));if(w&&w.type==="image/webp")return {blob:w,ext:"webp"};return {blob:await new Promise(r=>c.toBlob(r,"image/jpeg",.85)),ext:"jpg"};}
  $("#moment-grid").addEventListener("change",async ev=>{const card=ev.target.closest(".slot-card");if(!card)return;const n=Number(card.dataset.slot),err=$("#moment-error");err.textContent="";
   if(ev.target.matches(".slot-alt")){if(slots[n]?.image_path){const {error}=await sb.from("moment_slots").update({alt_text:ev.target.value.trim()||null,updated_at:new Date().toISOString()}).eq("slot",n);if(error)err.textContent="Beschreibung konnte nicht gespeichert werden.";else slots[n].alt_text=ev.target.value.trim();}return;}
@@ -126,5 +126,27 @@
   const {error}=await sb.functions.invoke("manage-team",{body});btn.disabled=false;
   if(error){msg.className="admin-error";msg.textContent=await fnError(error,"manage-team");return;}
   msg.className="admin-ok";msg.textContent="✓ Einladung an "+body.email+" wurde gesendet. Über den Link in der E-Mail legt die Person ihr Passwort fest.";form.reset();$("#inv-job").onchange();await loadTeam();});
+ /* ---------- Website: Unser Team (Über uns) ---------- */
+ let tsList=[],tsEditing=null;
+ async function loadTeamSite(){const {data,error}=await sb.from("team_members").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:true});if(error){$("#ts-error").textContent="Team-Einträge konnten nicht geladen werden. Wurde supabase/team-website.sql ausgeführt?";return;}tsList=data||[];renderTeamSite();}
+ function renderTeamSite(){$("#ts-list").innerHTML=tsList.length?tsList.map((m,i)=>`<article class="request-row ts-row" data-id="${m.id}">${m.photo_path?`<img class="ts-thumb" src="${esc(pubUrl(m.photo_path))}" alt="">`:'<span class="ts-thumb"></span>'}<div><h3>${esc(m.name)}</h3><p>${esc(m.role||"ohne Position")} · Foto ${i%2===0?"links":"rechts"}</p></div><span class="status status-big ${m.published?"status-online":"status-draft"}"><i class="dot"></i>${m.published?"Online":"Ausgeblendet"}</span><div class="row-actions"><button class="button button-ghost" data-act="up" ${i===0?"disabled":""} aria-label="Nach oben">↑</button><button class="button button-ghost" data-act="down" ${i===tsList.length-1?"disabled":""} aria-label="Nach unten">↓</button><button class="button button-ghost" data-act="edit">Bearbeiten</button><button class="button button-ghost btn-danger" data-act="del">Löschen</button></div></article>`).join(""):'<p class="form-hint">Noch niemand eingetragen. Unter „Über uns“ erscheint dann ein Hinweis, dass das Team bald vorgestellt wird.</p>';}
+ function resetTs(){tsEditing=null;$("#ts-form").reset();$("#ts-form").elements.published.checked=true;$("#ts-save").textContent="Person speichern";$("#ts-cancel").hidden=true;$("#ts-current").hidden=true;}
+ $("#ts-cancel").addEventListener("click",resetTs);
+ $("#ts-list").addEventListener("click",async ev=>{const btn=ev.target.closest("button[data-act]");if(!btn)return;const id=btn.closest(".ts-row").dataset.id,i=tsList.findIndex(x=>x.id===id),m=tsList[i],err=$("#ts-error");if(!m)return;err.textContent="";
+  if(btn.dataset.act==="edit"){const f=$("#ts-form").elements;tsEditing=m;f.name.value=m.name;f.role.value=m.role||"";f.description.value=m.description||"";f.published.checked=m.published;f.photo.value="";$("#ts-save").textContent="Änderungen speichern";$("#ts-cancel").hidden=false;const cur=$("#ts-current");cur.hidden=!m.photo_path;cur.innerHTML=m.photo_path?`<img src="${esc(pubUrl(m.photo_path))}" alt="" class="ts-thumb"> <span>Aktuelles Foto. Nur ein neues Foto auswählen, wenn es ausgetauscht werden soll.</span>`:"";$("#ts-form").scrollIntoView({behavior:"smooth",block:"center"});}
+  else if(btn.dataset.act==="del"){if(!confirm("„"+m.name+"“ von der Website entfernen?"))return;const {error}=await sb.from("team_members").delete().eq("id",id);if(error){err.textContent="Löschen fehlgeschlagen.";return;}if(m.photo_path)await sb.storage.from("moments").remove([m.photo_path]);if(tsEditing?.id===id)resetTs();await loadTeamSite();}
+  else{const j=btn.dataset.act==="up"?i-1:i+1,o=tsList[j];if(!o)return;const [r1,r2]=await Promise.all([sb.from("team_members").update({sort_order:o.sort_order}).eq("id",m.id),sb.from("team_members").update({sort_order:m.sort_order}).eq("id",o.id)]);if(r1.error||r2.error){err.textContent="Reihenfolge konnte nicht geändert werden.";return;}await loadTeamSite();}});
+ $("#ts-form").addEventListener("submit",async ev=>{ev.preventDefault();const f=ev.currentTarget.elements,err=$("#ts-error"),btn=$("#ts-save"),file=f.photo.files[0];err.textContent="";
+  if(!tsEditing&&!file){err.textContent="Bitte ein Foto auswählen.";return;}
+  if(file&&(!file.type.startsWith("image/")||file.size>25*1024*1024)){err.textContent="Bitte ein Bild (JPG, PNG oder WebP) bis 25 MB wählen.";return;}
+  btn.disabled=true;let newPath=null;
+  try{if(file){const {blob,ext}=await toImage(file,1200);newPath=`team-${Date.now()}.${ext}`;const up=await sb.storage.from("moments").upload(newPath,blob,{contentType:blob.type,cacheControl:"31536000"});if(up.error)throw up.error;}
+   const row={name:f.name.value.trim(),role:f.role.value.trim()||null,description:f.description.value.trim()||null,published:f.published.checked};if(newPath)row.photo_path=newPath;
+   const next=tsList.length?Math.max(...tsList.map(x=>x.sort_order))+1:0;
+   const {error}=tsEditing?await sb.from("team_members").update(row).eq("id",tsEditing.id):await sb.from("team_members").insert({...row,sort_order:next});
+   if(error)throw error;if(newPath&&tsEditing?.photo_path)await sb.storage.from("moments").remove([tsEditing.photo_path]);
+   resetTs();await loadTeamSite();
+  }catch(e){console.error(e);err.textContent="Speichern fehlgeschlagen. Wurde supabase/team-website.sql ausgeführt?";}
+  btn.disabled=false;});
  init();
 })();

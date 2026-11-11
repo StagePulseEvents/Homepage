@@ -102,3 +102,8 @@ stagepulse-events/
 3. **Supabase → Authentication → URL Configuration:** Site URL = Adresse eurer Website; unter *Redirect URLs* zusätzlich `https://EURE-DOMAIN/admin.html` eintragen.
 4. **E-Mail-Versand:** Secrets `SMTP_USER` (GMX-Adresse) und `SMTP_PASS` (GMX-Passwort) in Supabase unter Edge Functions → Secrets anlegen. Damit laufen Annahme-Mails, Eingangsbestätigung und Einladungen. Supabase-Authentication-SMTP wird nicht benötigt.
 5. Eingeladene Personen legen ihr Passwort über den Link in der E-Mail auf `admin.html` fest.
+
+## Neu: Team auf der Website, Bildtexte, Mail-Hinweise
+- **SQL:** `supabase/team-website.sql` einmal im SQL Editor ausführen (Tabelle für „Über uns → Unser Team“).
+- **Funktionen neu bereitstellen:** `submit-inquiry`, `manage-inquiry`, `manage-team` (der Mailversand nutzt jetzt nodemailer statt denomailer).
+- **Mails bei neuer Anfrage:** Hinweis an `INTERNAL_NOTIFY_EMAIL` (sonst `SMTP_USER`) und kurze Eingangsbestätigung an den Kunden. Schlägt eine Mail fehl, steht der Grund in Supabase unter Edge Functions → submit-inquiry → Logs (Suchbegriff `MAIL_FAIL`).
