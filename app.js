@@ -35,34 +35,47 @@
     const go=d=>row.scrollBy({left:d*(cards[0].offsetWidth+16),behavior:"smooth"});
     $("#occ-prev").onclick=()=>go(-1);$("#occ-next").onclick=()=>go(1);row.addEventListener("scroll",upd,{passive:true});}
   $$(".adv-filter button").forEach(b=>b.addEventListener("click",()=>{const team=b.dataset.f==="team";$$(".adv-filter button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));$$(".adv").forEach(c=>c.hidden=b.dataset.f!=="all"&&c.dataset.c!==b.dataset.f);const g=$("#adv-grid"),tp=$("#team-panel");if(g)g.hidden=team;if(tp)tp.hidden=!team;}));
+  const refreshers=[],registerRefresh=f=>refreshers.push(f);let sbShared=null;const getSb=()=>sbShared||(sbShared=window.supabase.createClient(window.STAGEPULSE_CONFIG.SUPABASE_URL,window.STAGEPULSE_CONFIG.SUPABASE_ANON_KEY));
   const teamBox=$("#team-list");
-  if(teamBox){(async()=>{const cT=window.STAGEPULSE_CONFIG||{},hx=s=>String(s??"").replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x])),none=()=>{teamBox.innerHTML='<p class="events-empty">Unser Team stellen wir hier bald vor.</p>'};
+  if(teamBox){let tSig="";const loadTeam=async()=>{const cT=window.STAGEPULSE_CONFIG||{},hx=s=>String(s??"").replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x])),none=()=>{teamBox.innerHTML='<p class="events-empty">Unser Team stellen wir hier bald vor.</p>'};
     if(!window.supabase||!cT.SUPABASE_URL||cT.SUPABASE_URL.includes("DEIN-PROJEKT")){none();return;}
-    try{const sbT=window.supabase.createClient(cT.SUPABASE_URL,cT.SUPABASE_ANON_KEY),{data,error}=await sbT.from("team_members").select("name,role,description,photo_path").eq("published",true).order("sort_order",{ascending:true});if(error)throw error;if(!data||!data.length){none();return;}
+    try{const sbT=getSb(),{data,error}=await sbT.from("team_members").select("name,role,description,photo_path").eq("published",true).order("sort_order",{ascending:true});if(error)throw error;const sg=JSON.stringify(data||[]);if(sg===tSig)return;tSig=sg;if(!data||!data.length){none();return;}
       teamBox.innerHTML=data.map(m=>`<article class="team-row"><figure class="team-photo">${m.photo_path?`<img src="${cT.SUPABASE_URL}/storage/v1/object/public/moments/${encodeURIComponent(m.photo_path)}" alt="${hx(m.name)}${m.role?", "+hx(m.role):""}" loading="lazy" decoding="async">`:""}</figure><div class="team-text">${m.role?`<p class="team-role">${hx(m.role)}</p>`:""}<h3>${hx(m.name)}</h3>${m.description?`<p>${hx(m.description).replace(/\n/g,"<br>")}</p>`:""}</div></article>`).join("");}
-    catch(e){console.error(e);none();}})();}
+    catch(e){console.error(e);if(!tSig)none();}};registerRefresh(loadTeam);loadTeam();}
+  const refreshAll=()=>refreshers.forEach(f=>{try{f();}catch(_){}});
+  const cLive=window.STAGEPULSE_CONFIG||{};
+  if(window.supabase&&cLive.SUPABASE_URL&&!cLive.SUPABASE_URL.includes("DEIN-PROJEKT")){
+    setInterval(()=>{if(!document.hidden)refreshAll();},30000);
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshAll();});
+    try{let tm;const kick=()=>{clearTimeout(tm);tm=setTimeout(refreshAll,400);};
+      getSb().channel("stagepulse-live").on("postgres_changes",{event:"*",schema:"public",table:"public_events"},kick).on("postgres_changes",{event:"*",schema:"public",table:"moment_slots"},kick).on("postgres_changes",{event:"*",schema:"public",table:"team_members"},kick).subscribe();}catch(e){console.error(e);}
+  }
   if(!matchMedia("(prefers-reduced-motion: reduce)").matches){const ms=$$(".moment");let t=false;const par=()=>{ms.forEach(m=>{const r=m.getBoundingClientRect();m.style.setProperty("--py",(((r.top+r.height/2)-innerHeight/2)*-.06).toFixed(1)+"px")});t=false};addEventListener("scroll",()=>{if(!t){t=true;requestAnimationFrame(par)}},{passive:true});par();}
   const momentSlots=$$("[data-slot]"),cfg0=window.STAGEPULSE_CONFIG||{};
-  if(momentSlots.length&&window.supabase&&cfg0.SUPABASE_URL&&!cfg0.SUPABASE_URL.includes("DEIN-PROJEKT")){(async()=>{try{
-    const sb0=window.supabase.createClient(cfg0.SUPABASE_URL,cfg0.SUPABASE_ANON_KEY),{data,error}=await sb0.from("moment_slots").select("slot,image_path,alt_text");if(error)throw error;
-    (data||[]).forEach(s=>{if(!s.image_path)return;const fig=document.querySelector(`[data-slot="${s.slot}"]`);if(!fig)return;const img=document.createElement("img");
-      img.src=cfg0.SUPABASE_URL+"/storage/v1/object/public/moments/"+encodeURIComponent(s.image_path);img.alt=s.alt_text||"Moment bei einem StagePulse Event";img.loading="lazy";img.decoding="async";fig.classList.remove("moment-slot");fig.replaceChildren(img);if(s.alt_text){const cap=document.createElement("figcaption");cap.textContent=s.alt_text;fig.append(cap);}});
-  }catch(e){console.error(e);}})();}
-  let evData=[];const evBox=$("#event-list");
-  if(evBox){(async()=>{
+  if(momentSlots.length&&window.supabase&&cfg0.SUPABASE_URL&&!cfg0.SUPABASE_URL.includes("DEIN-PROJEKT")){momentSlots.forEach(f=>{f.dataset.ph=f.innerHTML;});
+    const loadMoments=async()=>{try{
+    const {data,error}=await getSb().from("moment_slots").select("slot,image_path,alt_text");if(error)throw error;
+    const by={};(data||[]).forEach(s=>by[s.slot]=s);
+    momentSlots.forEach(fig=>{const s=by[fig.dataset.slot],key=s&&s.image_path?s.image_path+"|"+(s.alt_text||""):"";if((fig.dataset.cur||"")===key)return;fig.dataset.cur=key;
+      if(!key){fig.classList.add("moment-slot");fig.innerHTML=fig.dataset.ph;return;}
+      const img=document.createElement("img");img.src=cfg0.SUPABASE_URL+"/storage/v1/object/public/moments/"+encodeURIComponent(s.image_path);img.alt=s.alt_text||"Moment bei einem StagePulse Event";img.loading="lazy";img.decoding="async";
+      fig.classList.remove("moment-slot");fig.replaceChildren(img);if(s.alt_text){const cap=document.createElement("figcaption");cap.textContent=s.alt_text;fig.append(cap);}});
+  }catch(e){console.error(e);}};registerRefresh(loadMoments);loadMoments();}
+  let evData=[],evSig="";const evBox=$("#event-list");
+  if(evBox){const loadEvents=async()=>{
     const cfg=window.STAGEPULSE_CONFIG||{},esc=s=>String(s??"").replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]));
     const empty=()=>{evBox.innerHTML='<p class="events-empty">Aktuell sind keine öffentlichen Events geplant. Schau bald wieder vorbei!</p>'};
     if(!window.supabase||!cfg.SUPABASE_URL||cfg.SUPABASE_URL.includes("DEIN-PROJEKT")){empty();return;}
     try{
-      const sb=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY),today=new Date().toLocaleDateString("sv-SE");
+      const sb=getSb(),today=new Date().toLocaleDateString("sv-SE");
       const {data,error}=await sb.from("public_events").select("title,event_date,start_time,location,description,link_url").eq("published",true).gte("event_date",today).order("event_date",{ascending:true}).order("start_time",{ascending:true,nullsFirst:false}).limit(6);
-      if(error)throw error;if(!data||!data.length){empty();return;}
+      if(error)throw error;const sig=JSON.stringify(data||[]);if(sig===evSig)return;evSig=sig;if(!data||!data.length){empty();return;}
       const mon=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
       evData=data;
       evBox.innerHTML=data.map((e,i)=>{const [y,m,d]=e.event_date.split("-");const time=e.start_time?e.start_time.slice(0,5)+" Uhr · ":"";
         return `<article class="event-card" data-i="${i}"><time class="event-date" datetime="${esc(e.event_date)}"><b>${Number(d)}</b><span>${mon[Number(m)-1]}</span></time><div class="event-body"><h3>${esc(e.title)}</h3><p class="event-meta">${time}${esc(e.location)}</p>${e.description?`<p class="event-short">${esc(e.description)}</p>`:""}<button type="button" class="event-open">Details &amp; Route ↗</button></div></article>`;}).join("");
-    }catch(err){console.error(err);empty();}
-  })();}
+    }catch(err){console.error(err);if(!evSig)empty();}
+  };registerRefresh(loadEvents);loadEvents();}
   const ed=$("#event-dialog");
   if(evBox&&ed){
     const mapBox=$("#ed-map"),enc=encodeURIComponent,h=s=>String(s??"").replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]));
