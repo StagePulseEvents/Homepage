@@ -19,7 +19,7 @@
  }
  async function enter(user){
   currentUser=user;$("#login-panel").hidden=true;$("#dashboard").hidden=false;$("#user-label").textContent=user.email;
-  await Promise.all([loadRequests(),loadEvents(),loadMoments(),loadTeamSite()]);
+  await Promise.all([loadRequests(),loadEvents(),loadMoments(),loadTeamSite()]);startLive();updateNotifyUI();
   const {data:profile}=await sb.from("profiles").select("role").eq("id",user.id).single();
   if(profile?.role==="admin"){$("#employee-panel").hidden=false;await loadTeam();}
  }
@@ -33,17 +33,17 @@
 
  /* ---------- Anfragen ---------- */
  $("#refresh").addEventListener("click",loadRequests);$("#status-filter").addEventListener("change",render);$("#search").addEventListener("input",render);
- async function loadRequests(){const {data,error}=await sb.from("inquiries").select("*").order("created_at",{ascending:false});if(error){$("#dashboard-error").textContent="Anfragen konnten nicht geladen werden. Prüfe Benutzerrolle und Datenbankrichtlinien.";return;}requests=data||[];$("#dashboard-error").textContent="";render();}
+ async function loadRequests(){const {data,error}=await sb.from("inquiries").select("*").order("created_at",{ascending:false});if(error){$("#dashboard-error").textContent="Anfragen konnten nicht geladen werden. Prüfe Benutzerrolle und Datenbankrichtlinien.";return;}requests=data||[];$("#dashboard-error").textContent="";detectNew();render();}
  function render(){const q=$("#search").value.toLowerCase(),st=$("#status-filter").value;
   const list=requests.filter(r=>(!st||r.status===st)&&[r.full_name,r.email,r.venue,r.event_type].join(" ").toLowerCase().includes(q));
-  $("#request-list").innerHTML=list.length?list.map(r=>`<article class="request-row req-row" data-id="${r.id}"><div><h3>${esc(r.full_name)}</h3><p>${esc((r.services||[]).join(", "))} · ${esc(r.venue||"")}</p></div><span class="status status-${r.status.toLowerCase().replaceAll(" ","-")}">${esc(r.status)}</span><time>${fmt(r.created_at)}</time><div class="row-actions"><button class="button button-ghost" data-act="status">Status ändern</button><button class="button button-ghost btn-danger" data-act="del">Löschen</button></div></article>`).join(""):'<p class="form-hint">Keine passenden Anfragen gefunden.</p>';}
+  $("#request-list").innerHTML=list.length?list.map(r=>`<article class="request-row req-row${fresh.has(r.id)?" fresh":""}" data-id="${r.id}"><div><h3>${esc(r.full_name)}${fresh.has(r.id)?' <span class="new-tag">NEU</span>':""}</h3><p>${esc((r.services||[]).join(", "))} · ${esc(r.venue||"")}${mailWarn(r)}</p></div><span class="status status-${r.status.toLowerCase().replaceAll(" ","-")}">${esc(r.status)}</span><time>${fmt(r.created_at)}</time><div class="row-actions"><button class="button button-ghost" data-act="status">Status ändern</button><button class="button button-ghost btn-danger" data-act="del">Löschen</button></div></article>`).join(""):'<p class="form-hint">Keine passenden Anfragen gefunden.</p>';}
  $("#request-list").addEventListener("click",ev=>{const row=ev.target.closest(".request-row");if(!row)return;const btn=ev.target.closest("button[data-act]");
   if(!btn)return openRequest(row.dataset.id);
   const r=requests.find(x=>x.id===row.dataset.id);if(!r)return;
   if(btn.dataset.act==="status")openStatus(r);else deleteRequest(r);});
  function detailCell(l,v){return `<div class="detail-cell"><small>${l}</small><p>${esc(v||"—")}</p></div>`;}
- async function openRequest(id){selected=requests.find(r=>r.id===id);if(!selected)return;$("#detail-name").textContent=selected.full_name;
-  $("#detail-body").innerHTML=[detailCell("Status",selected.status),detailCell("Kontakt",selected.email+" · "+selected.phone),detailCell("Veranstaltungsart",selected.event_type),detailCell("Datum",selected.event_date),detailCell("Ort",selected.venue),detailCell("Dienstleistungen",(selected.services||[]).join(", ")),detailCell("Gästezahl",selected.guest_count),detailCell("Mengen / Anzahl",selected.quantities),detailCell("Nachricht",selected.message),detailCell("Eingegangen",fmt(selected.created_at))].join("");
+ async function openRequest(id){selected=requests.find(r=>r.id===id);if(!selected)return;fresh.delete(id);if(!fresh.size){unseen=0;document.title=baseTitle;}render();$("#detail-name").textContent=selected.full_name;
+  $("#detail-body").innerHTML=[detailCell("Status",selected.status),detailCell("Kontakt",selected.email+" · "+selected.phone),detailCell("Veranstaltungsart",selected.event_type),detailCell("Datum",selected.event_date),detailCell("Ort",selected.venue),detailCell("Dienstleistungen",(selected.services||[]).join(", ")),detailCell("Gästezahl",selected.guest_count),detailCell("Mengen / Anzahl",selected.quantities),detailCell("Nachricht",selected.message),detailCell("Eingegangen",fmt(selected.created_at)),detailCell("E-Mail an Team",mailLabel(selected.notify_mail)),detailCell("Bestätigung an Kunde",mailLabel(selected.confirm_mail)+(selected.mail_error?" – "+selected.mail_error:""))].join("");
   $("#internal-note").value="";await loadNotes();$("#request-dialog").showModal();}
  function openStatus(r){statusTarget=r;$("#status-name").textContent=r.full_name;$("#status-current").textContent="Aktueller Status: "+r.status;$("#status-select").innerHTML=statuses.map(s=>`<option ${s===r.status?"selected":""}>${s}</option>`).join("");$("#status-error").textContent="";$("#status-dialog").showModal();}
  $("#status-save").addEventListener("click",async()=>{if(!statusTarget)return;const btn=$("#status-save"),status=$("#status-select").value;btn.disabled=true;
@@ -148,5 +148,29 @@
    resetTs();await loadTeamSite();
   }catch(e){console.error(e);err.textContent="Speichern fehlgeschlagen. Wurde supabase/team-website.sql ausgeführt?";}
   btn.disabled=false;});
+ /* ---------- Neue Anfragen: Live, Ton, Handy-Push, Mailtest ---------- */
+ const fresh=new Set(),baseTitle=document.title;let knownIds=null,unseen=0,liveOn=false;
+ const mailWarn=r=>(r.confirm_mail==="failed"||r.notify_mail==="failed")?' · <span class="mail-warn">⚠ Mail nicht gesendet</span>':"";
+ const mailLabel=v=>v==="sent"?"gesendet":v==="failed"?"fehlgeschlagen":"—";
+ function detectNew(){const ids=new Set(requests.map(r=>r.id));
+  if(knownIds){const nw=requests.filter(r=>!knownIds.has(r.id));if(nw.length){nw.forEach(r=>fresh.add(r.id));unseen+=nw.length;if(window.SPPush&&SPPush.soundOn())SPPush.beep();document.title="("+unseen+") Neue Anfrage – "+baseTitle;$("#dashboard-info").textContent="🔔 Neue Anfrage von "+nw.map(r=>r.full_name).join(", ");}}
+  knownIds=ids;}
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden&&unseen&&!fresh.size){unseen=0;document.title=baseTitle;}});
+ function startLive(){if(liveOn)return;liveOn=true;
+  try{sb.channel("inquiries-live").on("postgres_changes",{event:"*",schema:"public",table:"inquiries"},()=>loadRequests()).subscribe();}catch(e){console.error(e);}
+  setInterval(()=>{if(!document.hidden)loadRequests();},30000);}
+ async function updateNotifyUI(){const S=window.SPPush;if(!S)return;$("#sound-toggle").textContent="Ton: "+(S.soundOn()?"an":"aus");
+  const st=await S.state(),b=$("#push-toggle"),m=$("#notify-msg");$("#push-test").hidden=st!=="on";
+  if(st==="unsupported"){b.disabled=true;b.textContent="Handy-Benachrichtigung nicht verfügbar";m.textContent="Dieser Browser unterstützt keine Benachrichtigungen. Am Handy bitte Chrome verwenden.";}
+  else if(st==="denied"){b.disabled=true;b.textContent="Benachrichtigungen blockiert";m.textContent="Bitte in den Browser-Einstellungen für diese Seite Benachrichtigungen erlauben.";}
+  else if(st==="on"){b.disabled=false;b.textContent="Handy-Benachrichtigung: an";m.textContent="Dieses Gerät wird bei jeder neuen Anfrage benachrichtigt. Tippen zum Ausschalten.";}
+  else{b.disabled=false;b.textContent="Handy-Benachrichtigung aktivieren";m.textContent="";}}
+ $("#sound-toggle").addEventListener("click",()=>{SPPush.setSound(!SPPush.soundOn());updateNotifyUI();});
+ $("#push-toggle").addEventListener("click",async()=>{const b=$("#push-toggle"),m=$("#notify-msg");b.disabled=true;try{if(await SPPush.state()==="on")await SPPush.disable(sb);else await SPPush.enable(sb);m.textContent="";}catch(e){m.textContent=e.message;}b.disabled=false;await updateNotifyUI();});
+ $("#push-test").addEventListener("click",async()=>{const m=$("#notify-msg");m.textContent="Test wird gesendet …";try{const r=await SPPush.test(sb);m.textContent=r.sent?"✓ Test gesendet. Die Benachrichtigung sollte gleich erscheinen.":"Der Push-Dienst hat den Test nicht angenommen. Bitte aus- und wieder einschalten.";}catch(e){m.textContent=e.message;}});
+ $("#mail-test").addEventListener("click",async()=>{const m=$("#mail-test-msg"),b=$("#mail-test");m.className="";m.textContent="Test-Mail wird gesendet …";b.disabled=true;
+  const {data,error}=await sb.functions.invoke("manage-team",{body:{action:"test_mail"}});b.disabled=false;
+  if(error){m.className="admin-error";m.textContent=await fnError(error,"manage-team");return;}
+  m.className="admin-ok";m.textContent="✓ Test-Mail an "+data.to+" gesendet (Weg: "+data.via+"). Schau auch im Spam-Ordner nach.";});
  init();
 })();
