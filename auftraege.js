@@ -53,6 +53,12 @@
   if(data&&data.mail==="sent")ok.textContent="✓ Status gespeichert. Bestätigungs-E-Mail an "+data.to+" gesendet.";
   else if(data&&data.mail==="failed")er.textContent="Status gespeichert, aber die E-Mail an "+data.to+" konnte nicht gesendet werden. "+(data.mail_error||"");
   else ok.textContent="✓ Status gespeichert.";});
+ $("#d-delete").addEventListener("click",async()=>{if(!cur)return;
+  if(!confirm("Auftrag von „"+cur.full_name+"“ endgültig löschen?\nDer Auftrag und alle internen Notizen werden unwiderruflich entfernt."))return;
+  const b=$("#d-delete");b.disabled=true;$("#d-error").textContent="";
+  const {error}=await sb.functions.invoke("manage-inquiry",{body:{action:"delete",inquiry_id:cur.id}});b.disabled=false;
+  if(error){$("#d-error").textContent=await fnError(error,"manage-inquiry");return;}
+  $("#detail").close();cur=null;await load();$("#app-info").textContent="✓ Auftrag gelöscht.";});
  $("#d-close").addEventListener("click",()=>$("#detail").close());$("#detail").addEventListener("click",e=>{if(e.target.id==="detail")$("#detail").close();});
  $("#reload").addEventListener("click",()=>{load();loadEvents();loadMoments();});
  document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(knownIds)load();if(unseen&&!fresh.size){unseen=0;document.title=baseTitle;}}});
