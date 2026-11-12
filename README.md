@@ -107,3 +107,20 @@ stagepulse-events/
 - **SQL:** `supabase/team-website.sql` einmal im SQL Editor ausführen (Tabelle für „Über uns → Unser Team“).
 - **Funktionen neu bereitstellen:** `submit-inquiry`, `manage-inquiry`, `manage-team` (der Mailversand nutzt jetzt nodemailer statt denomailer).
 - **Mails bei neuer Anfrage:** Hinweis an `INTERNAL_NOTIFY_EMAIL` (sonst `SMTP_USER`) und kurze Eingangsbestätigung an den Kunden. Schlägt eine Mail fehl, steht der Grund in Supabase unter Edge Functions → submit-inquiry → Logs (Suchbegriff `MAIL_FAIL`).
+
+## Live-Aktualisierung der Startseite
+- Die Startseite prüft alle 30 Sekunden (und beim Zurückkehren in den Tab) auf Änderungen bei Events, Bildern und Team und aktualisiert nur, was sich geändert hat.
+- Optional sofort: `supabase/live-updates.sql` im SQL Editor ausführen (Realtime).
+
+## Neu: Mail-Fix, Handy-Push und Mitarbeiter-App
+1. **SQL:** `supabase/benachrichtigungen.sql` im SQL Editor ausführen (Mail-Status, Push-Tabellen, Live-Anfragen).
+2. **Funktionen bereitstellen:** `submit-inquiry`, `manage-inquiry`, `manage-team` (neu hochladen) und **`push-notify`** (neu anlegen).
+3. **Dateien hochladen:** `index.html`, `admin.html`, `admin.js`, `admin.css`, `app.html`, `auftraege.js`, `push.js`, `sw.js`, `app.webmanifest`, `app.js`, `styles.css` und den Ordner `assets/` (neue Icons).
+4. **Mail prüfen:** Admin-Bereich → Team → „Test-Mail senden“. Bei einem Fehler steht dort der genaue Grund. Pro Anfrage zeigt der Admin-Bereich außerdem, ob die Mails gesendet wurden.
+5. **Handy:** `https://EURE-DOMAIN/app.html` in Chrome öffnen → anmelden → „Benachrichtigung aktivieren“ → Chrome-Menü „App installieren“.
+- Die Push-Meldung enthält bewusst keine Kundendaten, nur „Neuer Auftrag“. Die Schlüssel für Push erzeugt `push-notify` beim ersten Aktivieren selbst.
+
+## Neu: Einladungslink, Mitarbeiter-App
+- **Einladungslink:** Führt jetzt direkt auf `admin.html` Ihrer Website (nicht mehr über Supabase-Weiterleitung nach `localhost:3000`). Die Funktion `manage-team` muss neu bereitgestellt werden. Eine zuvor eingeladene, aber nie angemeldete Person wird mit „Einladen“ einfach erneut eingeladen.
+- **App:** `app.html` hat jetzt drei Bereiche (Aufträge mit Status ändern, Events, Bilder). Die Android-App (APK) entsteht daraus, siehe `ANDROID-APP-ERSTELLEN.md`.
+- Im Mitarbeiterbereich der Website gibt es nur noch den Ton-Schalter. Die Handy-Benachrichtigung läuft ausschließlich in der App.

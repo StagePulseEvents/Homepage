@@ -11,7 +11,9 @@
  async function fnError(error,fn){try{const r=error&&error.context;if(r&&typeof r.json==="function"){if(r.status===404)return "Die Funktion „"+fn+"“ ist in Supabase noch nicht bereitgestellt.";const j=await r.json();if(j&&j.error)return j.error;}}catch(_){}return "Verbindung zur Funktion „"+fn+"“ fehlgeschlagen. Ist sie in Supabase bereitgestellt?";}
 
  /* ---------- Anmeldung / Passwort ---------- */
+ const qs=new URLSearchParams(location.search),inviteToken=qs.get("invite"),inviteType=qs.get("type")==="recovery"?"recovery":"invite";
  async function init(){
+  if(inviteToken){$("#login-panel").hidden=true;$("#dashboard").hidden=true;$("#password-panel").hidden=false;return;}
   const invited=/type=(invite|recovery)/.test(location.hash);
   const {data:{session}}=await sb.auth.getSession();
   if(session&&invited){$("#login-panel").hidden=true;$("#password-panel").hidden=false;return;}
@@ -27,8 +29,9 @@
  $("#password-form").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget),a=f.get("password"),b=f.get("password2"),err=$("#password-error");
   if(String(a).length<10){err.textContent="Das Passwort braucht mindestens 10 Zeichen.";return;}
   if(a!==b){err.textContent="Die beiden Passwörter stimmen nicht überein.";return;}
+  if(inviteToken){const {error:ve}=await sb.auth.verifyOtp({token_hash:inviteToken,type:inviteType});if(ve){err.textContent="Der Einladungslink ist abgelaufen oder wurde schon benutzt. Bitte lass dir eine neue Einladung schicken.";return;}}
   const {data,error}=await sb.auth.updateUser({password:a});if(error){err.textContent="Passwort konnte nicht gespeichert werden: "+error.message;return;}
-  history.replaceState(null,"",location.pathname+location.search);$("#password-panel").hidden=true;await enter(data.user);});
+  history.replaceState(null,"",location.pathname);$("#password-panel").hidden=true;await enter(data.user);});
  $("#logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href=location.pathname;});
 
  /* ---------- Anfragen ---------- */
@@ -159,18 +162,7 @@
  function startLive(){if(liveOn)return;liveOn=true;
   try{sb.channel("inquiries-live").on("postgres_changes",{event:"*",schema:"public",table:"inquiries"},()=>loadRequests()).subscribe();}catch(e){console.error(e);}
   setInterval(()=>{if(!document.hidden)loadRequests();},30000);}
- async function updateNotifyUI(){const S=window.SPPush;if(!S)return;$("#sound-toggle").textContent="Ton: "+(S.soundOn()?"an":"aus");
-  const st=await S.state(),b=$("#push-toggle"),m=$("#notify-msg");$("#push-test").hidden=st!=="on";
-  if(st==="unsupported"){b.disabled=true;b.textContent="Handy-Benachrichtigung nicht verfügbar";m.textContent="Dieser Browser unterstützt keine Benachrichtigungen. Am Handy bitte Chrome verwenden.";}
-  else if(st==="denied"){b.disabled=true;b.textContent="Benachrichtigungen blockiert";m.textContent="Bitte in den Browser-Einstellungen für diese Seite Benachrichtigungen erlauben.";}
-  else if(st==="on"){b.disabled=false;b.textContent="Handy-Benachrichtigung: an";m.textContent="Dieses Gerät wird bei jeder neuen Anfrage benachrichtigt. Tippen zum Ausschalten.";}
-  else{b.disabled=false;b.textContent="Handy-Benachrichtigung aktivieren";m.textContent="";}}
+ function updateNotifyUI(){const S=window.SPPush;if(!S)return;$("#sound-toggle").textContent="Ton: "+(S.soundOn()?"an":"aus");const h=$("#app-hint");if(h&&cfg.ANDROID_APP_URL){h.hidden=false;h.innerHTML='Für das Handy gibt es die Android-App „StagePulse“ (Aufträge, Events und Fotos, mit Benachrichtigung): <a href="'+esc(cfg.ANDROID_APP_URL)+'">App herunterladen</a>';}}
  $("#sound-toggle").addEventListener("click",()=>{SPPush.setSound(!SPPush.soundOn());updateNotifyUI();});
- $("#push-toggle").addEventListener("click",async()=>{const b=$("#push-toggle"),m=$("#notify-msg");b.disabled=true;try{if(await SPPush.state()==="on")await SPPush.disable(sb);else await SPPush.enable(sb);m.textContent="";}catch(e){m.textContent=e.message;}b.disabled=false;await updateNotifyUI();});
- $("#push-test").addEventListener("click",async()=>{const m=$("#notify-msg");m.textContent="Test wird gesendet …";try{const r=await SPPush.test(sb);m.textContent=r.sent?"✓ Test gesendet. Die Benachrichtigung sollte gleich erscheinen.":"Der Push-Dienst hat den Test nicht angenommen. Bitte aus- und wieder einschalten.";}catch(e){m.textContent=e.message;}});
- $("#mail-test").addEventListener("click",async()=>{const m=$("#mail-test-msg"),b=$("#mail-test");m.className="";m.textContent="Test-Mail wird gesendet …";b.disabled=true;
-  const {data,error}=await sb.functions.invoke("manage-team",{body:{action:"test_mail"}});b.disabled=false;
-  if(error){m.className="admin-error";m.textContent=await fnError(error,"manage-team");return;}
-  m.className="admin-ok";m.textContent="✓ Test-Mail an "+data.to+" gesendet (Weg: "+data.via+"). Schau auch im Spam-Ordner nach.";});
  init();
 })();
