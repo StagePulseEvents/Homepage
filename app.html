@@ -20,7 +20,7 @@ dialog.sheet{background:var(--bg2);color:var(--text);border:1px solid var(--line
 dialog.sheet::backdrop{background:#000c}.detail-inner{padding:22px}.detail-inner h2{margin:4px 0 12px}.detail-grid{display:grid;gap:10px;margin:14px 0}
 .detail-actions-app{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.dclose{float:right;background:none;border:0;color:#fff;font-size:1.8rem;cursor:pointer;line-height:1}
 .status-box{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);display:grid;gap:10px}.status-box label{display:grid;gap:6px;color:var(--muted);font-size:.9rem}
-.app-wrap .event-row{margin-top:12px}.app-wrap .request-row{display:grid;gap:10px}
+.btn-danger-solid{background:#d9534f;border-color:#d9534f;color:#fff}.btn-danger-solid:hover{filter:brightness(1.1)}#confirm-dialog{z-index:50}.app-wrap .event-row{margin-top:12px}.app-wrap .request-row{display:grid;gap:10px}
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="push.js"></script><script defer src="auftraege.js"></script>
 </head><body class="admin-body app-body">
@@ -49,4 +49,5 @@ dialog.sheet::backdrop{background:#000c}.detail-inner{padding:22px}.detail-inner
 <div class="form-grid"><label class="span-two">Titel<input name="title" required maxlength="120" placeholder="z. B. Stadtfest Ratekau"></label><label>Datum<input name="event_date" type="date" required></label><label>Uhrzeit<input name="start_time" type="time"></label><label class="span-two">Adresse / Standort (für Google Maps)<input name="location" required maxlength="160" placeholder="z. B. Marktplatz 1, 23626 Ratekau"></label><label class="span-two">Beschreibung<textarea name="description" rows="3" maxlength="600"></textarea></label><label class="span-two">Link (optional, mit https://)<input name="link_url" type="url" placeholder="https://..."></label></div>
 <label class="consent"><input type="checkbox" name="published" checked><span>Auf der Website veröffentlichen</span></label>
 <div class="form-actions"><button class="button button-primary" id="ev-save" type="submit">Event speichern</button></div><p id="ev-error" class="admin-error" role="alert"></p></form></dialog>
+<dialog id="confirm-dialog" class="sheet" aria-labelledby="cf-title"><div class="detail-inner"><div class="section-kicker">BITTE BESTÄTIGEN</div><h2 id="cf-title">Wirklich löschen?</h2><p id="cf-text" class="lead" style="color:var(--muted)"></p><div class="detail-actions-app"><button id="cf-yes" class="button btn-danger-solid" type="button">Ja, löschen</button><button id="cf-no" class="button button-ghost" type="button">Nein, nicht löschen</button></div></div></dialog>
 </body></html>

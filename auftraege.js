@@ -9,6 +9,10 @@
  const statuses=["Neu","Angenommen","In Bearbeitung","Abgeschlossen","Abgelehnt"];
  let requests=[],knownIds=null,unseen=0,live=false,cur=null,events=[],editingEv=null,slots={};const fresh=new Set(),baseTitle=document.title;
  async function fnError(error,fn){try{const r=error&&error.context;if(r&&typeof r.json==="function"){if(r.status===404)return "Die Funktion „"+fn+"“ ist in Supabase noch nicht bereitgestellt.";const j=await r.json();if(j&&j.error)return j.error;}}catch(_){}return "Verbindung zur Funktion „"+fn+"“ fehlgeschlagen.";}
+ function askConfirm(title,text,yes="Ja, löschen"){return new Promise(res=>{const d=$("#confirm-dialog");$("#cf-title").textContent=title;$("#cf-text").textContent=text;$("#cf-yes").textContent=yes;
+  const end=v=>{d.onclose=null;d.oncancel=null;d.onclick=null;if(d.open)d.close();res(v);};
+  $("#cf-yes").onclick=()=>end(true);$("#cf-no").onclick=()=>end(false);d.oncancel=e=>{e.preventDefault();end(false);};d.onclick=e=>{if(e.target===d)end(false);};
+  d.showModal();$("#cf-no").focus();});}
  const pubUrl=p=>cfg.SUPABASE_URL+"/storage/v1/object/public/moments/"+p;
 
  /* ---------- Anmeldung ---------- */
@@ -54,7 +58,7 @@
   else if(data&&data.mail==="failed")er.textContent="Status gespeichert, aber die E-Mail an "+data.to+" konnte nicht gesendet werden. "+(data.mail_error||"");
   else ok.textContent="✓ Status gespeichert.";});
  $("#d-delete").addEventListener("click",async()=>{if(!cur)return;
-  if(!confirm("Auftrag von „"+cur.full_name+"“ endgültig löschen?\nDer Auftrag und alle internen Notizen werden unwiderruflich entfernt."))return;
+  if(!(await askConfirm("Auftrag löschen?","Auftrag von „"+cur.full_name+"“ endgültig löschen? Der Auftrag und alle internen Notizen werden unwiderruflich entfernt.")))return;
   const b=$("#d-delete");b.disabled=true;$("#d-error").textContent="";
   const {error}=await sb.functions.invoke("manage-inquiry",{body:{action:"delete",inquiry_id:cur.id}});b.disabled=false;
   if(error){$("#d-error").textContent=await fnError(error,"manage-inquiry");return;}
@@ -78,7 +82,7 @@
  $("#ev-close").addEventListener("click",()=>$("#ev-dialog").close());
  $("#ev-list").addEventListener("click",async ev=>{const btn=ev.target.closest("button[data-act]");if(!btn)return;const id=btn.closest(".event-row").dataset.id,e=events.find(x=>x.id===id);if(!e)return;
   if(btn.dataset.act==="edit")openEv(e);
-  else if(confirm("Event „"+e.title+"“ wirklich löschen?")){const {error}=await sb.from("public_events").delete().eq("id",id);if(error){$("#app-error").textContent="Löschen fehlgeschlagen.";return;}await loadEvents();}});
+  else if(await askConfirm("Event löschen?","Event „"+e.title+"“ wirklich löschen? Es verschwindet sofort von der Website.")){const {error}=await sb.from("public_events").delete().eq("id",id);if(error){$("#app-error").textContent="Löschen fehlgeschlagen.";return;}await loadEvents();}});
  $("#ev-form").addEventListener("submit",async ev=>{ev.preventDefault();const f=ev.currentTarget.elements,err=$("#ev-error"),btn=$("#ev-save");err.textContent="";
   const link=f.link_url.value.trim();if(link&&!/^https?:\/\//i.test(link)){err.textContent="Der Link muss mit https:// beginnen.";return;}
   const row={title:f.title.value.trim(),event_date:f.event_date.value,start_time:f.start_time.value||null,location:f.location.value.trim(),description:f.description.value.trim()||null,link_url:link||null,published:f.published.checked};
@@ -105,7 +109,7 @@
   }catch(e){console.error(e);err.textContent="Foto konnte nicht gespeichert werden. Wurde supabase/admin-erweiterung.sql ausgeführt?";}
   await loadMoments();});
  $("#moment-grid").addEventListener("click",async ev=>{const btn=ev.target.closest('button[data-act="rm"]');if(!btn)return;const n=Number(btn.closest(".slot-card").dataset.slot),s=slots[n];if(!s?.image_path)return;
-  if(!confirm("Foto von Bildplatz "+n+" wirklich löschen?"))return;const err=$("#moment-error");err.textContent="";
+  if(!(await askConfirm("Foto löschen?","Foto von Bildplatz "+n+" wirklich löschen? Es verschwindet sofort von der Website.")))return;const err=$("#moment-error");err.textContent="";
   const r1=await sb.storage.from("moments").remove([s.image_path]);const {error}=await sb.from("moment_slots").update({image_path:null,updated_at:new Date().toISOString()}).eq("slot",n);
   if(r1.error||error)err.textContent="Löschen fehlgeschlagen.";await loadMoments();});
 
